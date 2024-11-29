@@ -17,5 +17,5 @@ def parser() -> None:
         formatter_class=RawTextHelpFormatter
     )
     parser_obj.add_argument(
-        "Tasks", 
+        "Tasks",
     )

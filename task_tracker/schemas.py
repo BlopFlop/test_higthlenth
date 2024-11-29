@@ -2,8 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class PriorityTask(str, Enum):
@@ -12,40 +11,32 @@ class PriorityTask(str, Enum):
     LOW = "Низкий"
 
 
-class Task(BaseModel):
-
+class TaskSchema(BaseModel):
+    """."""
     id: int = Field(
-        ...,
         title="Уникальный айди задачи в json",
     )
     title: str = Field(
-        ...,
         title="Тема",
     )
     description: str = Field(
-        ...,
         title="Описание",
     )
     category: str = Field(
-        ...,
         title="Категория",
     )
     due_date: date = Field(
-        ...,
         title="Срок выполнения",
     )
     priority: PriorityTask = Field(
-        ...,
         title="Приоритет задачи",
     )
     status: bool = Field(
-        ...,
         title="Выполнена ли задача",
-        description="",
     )
 
     class Config:
-        schema_extra: dict[str, Any] = {
+        json_schema_extra: dict[str, Any] = {
             "example": {
                 "id": 1,
                 "title": "Изучить основы FastAPI",
