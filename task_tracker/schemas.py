@@ -12,7 +12,8 @@ class PriorityTask(str, Enum):
 
 
 class TaskSchema(BaseModel):
-    """."""
+    """Pydantic schema for Task."""
+
     id: int = Field(
         title="Уникальный айди задачи в json",
     )
@@ -44,7 +45,7 @@ class TaskSchema(BaseModel):
                 "category": "Обучение",
                 "due_date": "2024-11-30",
                 "priority": "Высокий",
-                "status": True
+                "status": True,
             }
         }
 

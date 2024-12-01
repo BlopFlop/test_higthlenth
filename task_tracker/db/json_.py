@@ -26,7 +26,9 @@ class JsonTask:
 
     def __change_data(self, data: list[Task]) -> None:
         with open(self.path_json, mode="w", encoding="utf-8") as json_file:
-            json_data = self.__task_adapter.dump_json(data, round_trip=True).decode()
+            json_data = self.__task_adapter.dump_json(
+                data, round_trip=True
+            ).decode()
             json_file.write(json_data)
 
     def __get_data(self) -> list[Task]:

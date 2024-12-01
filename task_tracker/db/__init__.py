@@ -1,1 +1,1 @@
-from db.json_ import JsonTask # noqa
+from db.json_ import JsonTask  # noqa
