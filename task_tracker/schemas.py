@@ -1,6 +1,6 @@
 from datetime import date
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -48,6 +48,38 @@ class TaskSchema(BaseModel):
                 "status": True,
             }
         }
+
+    def __str__(self) -> str:
+        return f"Task {self.title}"
+
+
+class TaskSchemaUpdate(BaseModel):
+    """Pydantic schema for Task."""
+
+    title: Optional[str] = Field(
+        None,
+        title="Тема",
+    )
+    description: Optional[str] = Field(
+        None,
+        title="Описание",
+    )
+    category: Optional[str] = Field(
+        None,
+        title="Категория",
+    )
+    due_date: Optional[date] = Field(
+        None,
+        title="Срок выполнения",
+    )
+    priority: Optional[PriorityTask] = Field(
+        None,
+        title="Приоритет задачи",
+    )
+    status: Optional[bool] = Field(
+        None,
+        title="Выполнена ли задача",
+    )
 
     def __str__(self) -> str:
         return f"Task {self.title}"

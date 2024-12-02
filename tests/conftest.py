@@ -1,8 +1,8 @@
-import pytest
 from pathlib import Path
 
-from task_tracker.repository import RepositoryTask
-from task_tracker.repository import TaskSchema
+import pytest
+
+from task_tracker.repository import RepositoryTask, TaskSchema
 
 
 @pytest.fixture

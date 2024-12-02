@@ -1,0 +1,56 @@
+[
+    {
+        "id": 1,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": 1243,
+        "due_date": "2024-11-30",
+        "priority": "Invalid priority",
+        "status": true
+    },
+    {
+        "id": 2,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": "Обучение",
+        "due_date": "2024-11-30",
+        "priority": "Высокий",
+        "status": "Invalid status"
+    },
+    {
+        "id": 3,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": "Обучение",
+        "due_date": 21312,
+        "priority": "Высокий",
+        "status": true
+    },
+    {
+        "id": 4,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": "Обучение",
+        "due_date": "2024-11-30",
+        "priority": "Высокий",
+        "status": true
+    },
+    {
+        "id": 5,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": "Обучение",
+        "due_date": "2024-11-30",
+        "priority": "Высокий",
+        "status": true
+    },
+    {
+        "id": 6,
+        "title": "Изучить основы FastAPI",
+        "description": "Пройти документация по FastAPI",
+        "category": "Обучение",
+        "due_date": "2024-11-30",
+        "priority": "Высокий",
+        "status": true
+    }
+]

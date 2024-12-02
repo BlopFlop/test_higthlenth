@@ -1,11 +1,45 @@
+import pytest
+from pydantic_core import ValidationError
+
 from task_tracker.repository import RepositoryTask
 from task_tracker.schemas import TaskSchema
-
-import pytest
+from tests.constants import JSON_INVALID_DATA, JSON_VALID_DATA
 
 
 class TestRepository:
-    # """Test class for RepositoryTask. It is testing CRUD features for Task objects."""
+    """Test class for RepositoryTask.
+    It is testing CRUD features for Task objects."""
+
+    invalid_id = 999
+    invalid_type_title = invalid_id
+    invalid_type_description = invalid_id
+    invalid_type_category = invalid_id
+    invalid_category = "Такой категории не существует"
+    invalid_type_due_date = invalid_id
+    invalid_type_priority = invalid_id
+    invalid_priority = "Такой приоретизации не существует"
+    invalid_type_status = invalid_id
+
+    def create_element_in_json(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ) -> int:
+        count_item = 20
+        count_item_other_category = 80
+
+        task_data = task.model_dump()
+        task_data.pop("id")
+        for _ in range(count_item):
+            repository.create(**task_data)
+
+        task_update_data = task_update.model_dump()
+        task_update_data.pop("id")
+        for _ in range(count_item_other_category):
+            repository.create(**task_update_data)
+
+        return count_item + count_item_other_category
 
     def test_create_json_file(self, repository: RepositoryTask):
         path_json = repository.path_json
@@ -13,6 +47,23 @@ class TestRepository:
             f"После инициализации класса {RepositoryTask.__name__}, "
             f"должен появиться json файл по пути {path_json}."
         )
+
+    def test_read_json_file_data(self):
+        json_file = RepositoryTask(JSON_VALID_DATA)
+        count_elements = len(json_file.get_all())
+        count_elements_confirm = 6
+        assert count_elements == count_elements_confirm, (
+            "После чтения валидного файла, результатом должен быть список "
+            f"из {count_elements_confirm} объектов, а сейчас {count_elements}."
+        )
+
+    def test_read_json_file_invalid_data(self):
+        with pytest.raises(ValueError) as ex:
+            RepositoryTask(JSON_INVALID_DATA)
+            assert ex, (
+                "После чтения файла с невалидными данными должна появиться"
+                f" ошибка {ValueError.__name__}."
+            )
 
     def test_create_task(self, repository: RepositoryTask, task: TaskSchema):
         task_data = task.model_dump()
@@ -38,17 +89,29 @@ class TestRepository:
                 f"а не {new_task_data[field]}."
             )
 
-    @pytest.mark.parametrize
     def test_create_task_invalid_data(self, repository: RepositoryTask):
-        return NotImplementedError
+        invalid_data = dict(
+            category=self.invalid_type_category,
+            description=self.invalid_type_description,
+            due_date=self.invalid_type_due_date,
+            priority=self.invalid_type_priority,
+            status=self.invalid_type_status,
+            title=self.invalid_type_title,
+        )
+        with pytest.raises(ValidationError) as ex:
+            repository.create(**invalid_data)
+            assert ex, (
+                "При передаче невалидных данных для создания должна"
+                f" возникнуть ошибка {ValidationError.__name__}."
+            )
 
-    def test_get_all_task(self, repository: RepositoryTask, task: TaskSchema):
-        count_item = 20
-
-        task_data = task.model_dump()
-        task_data.pop("id")
-        for _ in range(count_item):
-            repository.create(**task_data)
+    def test_get_all_task(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        count_item = self.create_element_in_json(repository, task, task_update)
 
         tasks = repository.get_all()
 
@@ -66,9 +129,12 @@ class TestRepository:
         ), f"Все задачи должны быть типом {TaskSchema.__name__}."
 
     def test_get_task_for_id(
-        self, repository: RepositoryTask, task: TaskSchema
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
     ):
-        self.test_get_all_task(repository, task)
+        self.create_element_in_json(repository, task, task_update)
 
         get_task = repository.get(obj_id=task.id)
         assert isinstance(get_task, TaskSchema), (
@@ -80,25 +146,28 @@ class TestRepository:
             "поля из первоначальной модели должны быть равны."
         )
 
-    @pytest.mark.skip
-    def test_get_task_for_invalid_id():
-        return NotImplementedError
+    def test_get_task_for_invalid_id(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        self.create_element_in_json(repository, task, task_update)
+        with pytest.raises(ValueError) as ex:
+            repository.get(obj_id=self.invalid_id)
+            assert ex, (
+                "При передаче невалидных данных для создания должна"
+                f" возникнуть ошибка {ValueError.__name__}."
+            )
 
     def test_get_tasks_for_category(
-        self, repository: RepositoryTask, task: TaskSchema, task_update: TaskSchema
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
     ):
         count_item = 20
-        count_item_other_category = 65
-
-        task_data = task.model_dump()
-        task_data.pop("id")
-        for _ in range(count_item):
-            repository.create(**task_data)
-
-        task_update_data = task_update.model_dump()
-        task_update_data.pop("id")
-        for _ in range(count_item_other_category):
-            repository.create(**task_update_data)
+        self.create_element_in_json(repository, task, task_update)
 
         tasks = repository.get(category=task.category)
 
@@ -121,9 +190,19 @@ class TestRepository:
                 f" категорию {task.category}, а не {task_obj.category}."
             )
 
-    @pytest.mark.skip
-    def test_get_task_for_invalid_category():
-        return NotImplementedError
+    def test_get_task_for_invalid_category(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        self.create_element_in_json(repository, task, task_update)
+        with pytest.raises(ValueError) as ex:
+            repository.get(category=self.invalid_category)
+            assert ex, (
+                "При получении элемента по несуществующей категори, должна "
+                f"возникнуть ошибка {ValueError.__name__}."
+            )
 
     def test_update_task(
         self,
@@ -171,9 +250,27 @@ class TestRepository:
                 f"{update_task_value_field} != {get_id_task_value_filed}"
             )
 
-    @pytest.mark.skip
-    def test_update_task_invalid_data():
-        return NotImplementedError
+    def test_update_task_invalid_data(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        invalid_data = dict(
+            category=self.invalid_type_category,
+            description=self.invalid_type_description,
+            due_date=self.invalid_type_due_date,
+            priority=self.invalid_type_priority,
+            status=self.invalid_type_status,
+            title=self.invalid_type_title,
+        )
+        self.create_element_in_json(repository, task, task_update)
+        with pytest.raises(ValidationError) as ex:
+            repository.update(obj_id=task.id, **invalid_data)
+            assert ex, (
+                "При получении элемента по несуществующей категори, должна "
+                f"возникнуть ошибка {ValidationError.__name__}."
+            )
 
     def test_delete_task_for_id(
         self,
@@ -197,26 +294,27 @@ class TestRepository:
                 not delete_task
             ), "После удаления объектов из json, он должен быть удален из бд."
 
-    @pytest.mark.skip
-    def test_delete_task_for_invalid_id():
-        return NotImplementedError
+    def test_delete_task_for_invalid_id(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        self.create_element_in_json(repository, task, task_update)
+        with pytest.raises(ValueError) as ex:
+            repository.remove(obj_id=self.invalid_id)
+            assert ex, (
+                "При удалении элемента по несуществующему id, должна "
+                f"возникнуть ошибка {ValueError.__name__}."
+            )
 
     def test_delete_task_for_category(
-        self, repository: RepositoryTask, task: TaskSchema, task_update: TaskSchema
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
     ):
-        count_item = 20
-        count_item_other_category = 65
-
-        task_data = task.model_dump()
-        task_data.pop("id")
-        for _ in range(count_item):
-            repository.create(**task_data)
-
-        task_update_data = task_update.model_dump()
-        task_update_data.pop("id")
-        for _ in range(count_item_other_category):
-            repository.create(**task_update_data)
-
+        self.create_element_in_json(repository, task, task_update)
         repository.remove(category=task.category)
 
         all_tasks = repository.get_all()
@@ -226,15 +324,29 @@ class TestRepository:
         count_filter_tasks = len(filter_for_category_tasks)
         assert not count_filter_tasks, (
             "После удаления элементов по категории, в json не должно остаться "
-            f"объектов категории {task.category}, а их сейчас {count_filter_tasks}."
+            f"объектов категории {task.category}, "
+            f"а их сейчас {count_filter_tasks}."
         )
 
-    @pytest.mark.skip
-    def test_delete_task_for_invalid_category():
-        return NotImplementedError
+    def test_delete_task_for_invalid_category(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
+    ):
+        self.create_element_in_json(repository, task, task_update)
+        with pytest.raises(ValueError) as ex:
+            repository.remove(category=self.invalid_category)
+            assert ex, (
+                "При удалении элементов по несуществующей категории, должна "
+                f"возникнуть ошибка {ValueError.__name__}."
+            )
 
     @pytest.mark.skip
-    def search_tasks_for_fields(
-        self, repository: RepositoryTask, task: TaskSchema, task_update: TaskSchema
+    def test_search_task_for_keyword_argument(
+        self,
+        repository: RepositoryTask,
+        task: TaskSchema,
+        task_update: TaskSchema,
     ):
         pass
