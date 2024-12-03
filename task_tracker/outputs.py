@@ -1,5 +1,8 @@
+import logging
+
 from prettytable import PrettyTable
-from repository import TaskSchema
+
+from task_tracker.repository import TaskSchema
 
 
 def pretty_tasks_output(tasks: list[TaskSchema]) -> None:
@@ -25,4 +28,5 @@ def pretty_tasks_output(tasks: list[TaskSchema]) -> None:
             task.status,
         )
         task_table.add_row(rows)
+    logging.info(f"Выведено {len(tasks)} задач")
     print(task_table)

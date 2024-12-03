@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["get_all", "--id=1"],
+            "args": ["search", "--field=status", "--value=True"],
             "console": "integratedTerminal"
         }
     ]

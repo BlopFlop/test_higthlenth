@@ -210,13 +210,10 @@ class TestRepository:
         task: TaskSchema,
         task_update: TaskSchema,
     ):
-        count_item = 20
+        self.create_element_in_json(repository, task, task_update)
 
         task_data = task.model_dump()
         task_data.pop("id")
-        for _ in range(count_item):
-            repository.create(**task_data)
-
         update_task_data = task_update.model_dump()
         update_task_data.pop("id")
 
@@ -342,11 +339,32 @@ class TestRepository:
                 f"возникнуть ошибка {ValueError.__name__}."
             )
 
-    @pytest.mark.skip
     def test_search_task_for_keyword_argument(
         self,
         repository: RepositoryTask,
         task: TaskSchema,
         task_update: TaskSchema,
     ):
-        pass
+        self.create_element_in_json(repository, task, task_update)
+
+        for field in task.model_fields_set:
+            task_search = repository.get_obj_for_field_arg(
+                field=field, arg=getattr(task, field), many=True
+            )
+            len_task_search = len(task_search)
+            assert len_task_search > 0, (
+                f"Поиск сущестующих элементов по полю {field}, "
+                "должен дать список с элементами, сейчас он пуст."
+            )
+            filter_task_search = list(
+                filter(
+                    lambda task_: getattr(task_, field)
+                    == getattr(task, field),
+                    task_search,
+                )
+            )
+            len_filter_task_search = len(filter_task_search)
+            assert len_filter_task_search == len_task_search, (
+                f"Значения поля {field} у всех найденных "
+                "элементов должны быть равны."
+            )

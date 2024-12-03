@@ -1,10 +1,12 @@
+import logging
 from functools import wraps
 from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
 from pydantic_core import ValidationError
-from schemas import TaskSchema, TaskSchemaUpdate
+
+from task_tracker.schemas import TaskSchema, TaskSchemaUpdate
 
 
 class RepositoryTask:
@@ -28,7 +30,7 @@ class RepositoryTask:
         """Private method for check or create json file."""
         if not path_file.is_file():
             with open(path_file, mode="w", encoding="utf-8"):
-                pass
+                logging.info(f"Создан json файл {path_file.name}.")
         return path_file
 
     def __get_data(self) -> list[TaskSchema]:
@@ -46,11 +48,12 @@ class RepositoryTask:
                     " невалидные данные, получение данных из него невозможно,"
                     " пожалуйста перенесите его в другое место."
                 )
+                logging.error(except_message)
                 raise ValueError(except_message)
 
         return obj_data
 
-    def change_data_json_decorator(func):
+    def update_data_transaction(func):
         """Decorator transaction for change json file."""
 
         @wraps(func)
@@ -63,6 +66,10 @@ class RepositoryTask:
                     self.data, indent=4
                 ).decode()
                 json_file.write(json_data)
+
+                logging.info(
+                    f"В json перезаписано {len(self.data)} элементов."
+                )
             return result
 
         return wrapper
@@ -80,19 +87,22 @@ class RepositoryTask:
         except_message = (
             "В функцию не был передан ни один аргумент, не id и не category"
         )
+        logging.error(except_message)
         raise ValueError(except_message)
 
     def get_all(self) -> list[TaskSchema]:
         return self.data
 
-    @change_data_json_decorator
+    @update_data_transaction
     def create(self, **kwargs) -> TaskSchema:
         """Create task."""
         task_new_obj = TaskSchema(id=self.__autoincrement_id, **kwargs)
         self.data.append(task_new_obj)
+
+        logging.info(f"Создана задача {task_new_obj}.")
         return task_new_obj
 
-    @change_data_json_decorator
+    @update_data_transaction
     def update(self, obj_id: int, **kwargs) -> TaskSchema:
         """Update task for id or other fields."""
         obj_db = self.get(obj_id)
@@ -102,24 +112,29 @@ class RepositoryTask:
         obj_update_data = obj_update.model_dump()
 
         for field in obj_data:
-            if field in obj_update_data and obj_update_data.get(field):
+            if field not in obj_update_data:
+                continue
+            if obj_update_data.get(field) is not None:
                 setattr(obj_db, field, obj_update_data[field])
 
+        logging.info(f"Изменена задача id {obj_id} поля {obj_update_data}.")
         return obj_db
 
-    @change_data_json_decorator
+    @update_data_transaction
     def remove(self, obj_id: int = None, category: str = None) -> None:
         """Delete task for id or category."""
-        if obj_id:
+        if obj_id is not None:
             self.get_obj_for_field_arg("id", obj_id, False)
             self.data = list(filter(lambda task: task.id != obj_id, self.data))
+            logging.info(f"Задача под id {obj_id} удалена.")
             return
 
-        if category:
+        if category is not None:
             self.get_obj_for_field_arg("category", category, True)
             self.data = list(
                 filter(lambda task: task.category != category, self.data)
             )
+            logging.info(f"Задачи по категориям {category} удалены.")
             return
 
         except_message = (
@@ -130,13 +145,16 @@ class RepositoryTask:
     def get_obj_for_field_arg(self, field: str, arg: Any, many: bool):
         """Get task for keyword argument."""
         filter_data = list(
-            filter(lambda task: getattr(task, field) == arg, self.data)
+            filter(
+                lambda task: str(getattr(task, field)) == str(arg), self.data
+            )
         )
 
         if not filter_data:
             except_message = (
                 f"Элементы по полю: {field} и аргументу: {arg} не найдены."
             )
+            logging.error(except_message)
             raise ValueError(except_message)
 
         if many:
