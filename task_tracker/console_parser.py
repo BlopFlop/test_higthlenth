@@ -31,6 +31,7 @@ from task_tracker.utils import except_control
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def get(repository: RepositoryTask, namespace: Namespace) -> None:
+    """Get tasks for id or category."""
     obj_id = namespace.id
     category = namespace.category
 
@@ -55,6 +56,7 @@ def get(repository: RepositoryTask, namespace: Namespace) -> None:
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def get_all(repository: RepositoryTask, namespace: Namespace):
+    """Get all tasks."""
     tasks = repository.get_all()
     pretty_tasks_output(tasks)
 
@@ -64,6 +66,7 @@ def get_all(repository: RepositoryTask, namespace: Namespace):
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def post(repository: RepositoryTask, namespace: Namespace) -> None:
+    """Create tasks."""
     fields = dict(
         title=namespace.title,
         description=namespace.description,
@@ -92,6 +95,7 @@ def post(repository: RepositoryTask, namespace: Namespace) -> None:
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def patch(repository: RepositoryTask, namespace: Namespace) -> None:
+    """Update task for id."""
     obj_id = namespace.id
     fields = dict(
         title=namespace.title,
@@ -124,6 +128,7 @@ def patch(repository: RepositoryTask, namespace: Namespace) -> None:
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def delete(repository: RepositoryTask, namespace: Namespace) -> None:
+    """Delete tasks for id or category."""
     obj_id = namespace.id
     category = namespace.category
 
@@ -145,6 +150,7 @@ def delete(repository: RepositoryTask, namespace: Namespace) -> None:
     validate_err_msg="Ошибка валидации в переданных полях.",
 )
 def search(repository: RepositoryTask, namespace: Namespace) -> None:
+    """Search tasks for field and value."""
     field = namespace.field
     value = namespace.value
 

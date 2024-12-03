@@ -6,6 +6,7 @@ from task_tracker.repository import TaskSchema
 
 
 def pretty_tasks_output(tasks: list[TaskSchema]) -> None:
+    """Table print tasks."""
     task_table = PrettyTable()
     task_table.field_names = (
         "id",
