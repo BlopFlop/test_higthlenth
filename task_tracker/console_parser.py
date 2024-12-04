@@ -76,7 +76,7 @@ def post(repository: RepositoryTask, namespace: Namespace) -> None:
         status=namespace.status,
     )
     for field_name in fields:
-        if not fields[field_name]:
+        if fields[field_name] is None:
             warning_message = (
                 f"У обязательного поля {field_name} нет значения.",
                 "Для создания объекта необходимо дать значение",
@@ -118,6 +118,8 @@ def patch(repository: RepositoryTask, namespace: Namespace) -> None:
         logging.warning(warning_message)
         print(warning_message)
         return
+
+    fields = {name: value for name, value in fields if value is not None}
 
     update_task = repository.update(obj_id=obj_id, **fields)
     pretty_tasks_output([update_task])
@@ -206,7 +208,9 @@ def parser():
         help=PRIORITY_FIELD_HELP_TEXT,
     )
     parser.add_argument(
-        "--status", type=bool, default=False, help=STATUS_FIELD_HELP_TEXT
+        "--status",
+        type=lambda x: (str(x).lower() == 'true'),
+        help=STATUS_FIELD_HELP_TEXT
     )
     parser.add_argument("-f", "--field", type=str, help=NAME_FIELD_HELP_TEXT)
     parser.add_argument("-v", "--value", type=str, help=VALUE_HELP_TEXT)
